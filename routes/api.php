@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SchoolController;
+use App\Http\Controllers\SubjectController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -25,9 +27,14 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware(['auth:sanctum', 'superadmin'])->group(function () {
     Route::put('/user/{userId}', [UserController::class, 'updateUser']);
-
+    
+    // SUBJECT ROUTES
     Route::get('/schools', [SchoolController::class, 'allSchools']);
     Route::post('/schools', [SchoolController::class, 'addSchool']);
     Route::get('/school/{schoolId}', [SchoolController::class, 'viewSchool']);
     Route::put('/school/{schoolId}', [SchoolController::class, 'updateSchool']);
+
+    // SUBJECT ROUTES
+    Route::post('/exam-type/add-subject', [SubjectController::class, 'addSubjectToExamType']);
+
 });
