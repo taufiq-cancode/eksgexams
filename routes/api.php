@@ -20,6 +20,8 @@ use App\Http\Controllers\SubjectController;
 */
 Route::post('/user', [UserController::class, 'createUser']);
 Route::post('/super-admin/login', [AuthController::class, 'superAdminLogin']);
+Route::post('/school-admin/login', [AuthController::class, 'schoolAdminLogin']);
+
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

@@ -21,6 +21,7 @@ class SchoolController extends Controller
                 return [
                     'id' => $school->id,
                     'school_name' => $school->school_name,
+                    'school_code' => $school->school_code,
                     'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
                     'pin' => $school->pin ? $school->pin->pin : null,
                 ];
@@ -106,6 +107,7 @@ class SchoolController extends Controller
         $transformedSchool = [
             'id' => $school->id,
             'school_name' => $school->school_name,
+            'school_code' => $school->school_code,
             'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
             'pin' => $school->pin ? $school->pin->pin : null,
             'exam_types' => $school->examTypes->pluck('name'),
