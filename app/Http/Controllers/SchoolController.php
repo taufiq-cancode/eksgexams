@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\ExamType;
 use App\Models\School;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,24 +13,23 @@ use Illuminate\Support\Facades\Log;
 class SchoolController extends Controller
 {
 
-    public function allSchools(){
+    public function allSchools()
+    {
         try {
+            $schools = School::with('localGovernment', 'pin')->get();
 
-            $paginatedSchools = School::with('localGovernment', 'pin')->paginate(10);
-            
-            $transformedSchools = $paginatedSchools->getCollection()->map(function ($school) {
+            $transformedSchools = $schools->map(function ($school) {
                 return [
                     'id' => $school->id,
                     'school_name' => $school->school_name,
                     'school_code' => $school->school_code,
+                    'owner' => $school->owner,
                     'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
                     'pin' => $school->pin ? $school->pin->pin : null,
                 ];
-            })->all();
-        
-            $paginatedSchools->setCollection(collect($transformedSchools));
-        
-            return response()->json($paginatedSchools);
+            });
+
+            return response()->json($transformedSchools);
 
         } catch(\Exception $e) {
             return response()->json([
@@ -38,6 +38,56 @@ class SchoolController extends Controller
             ]);
         }
     }
+
+    public function sortedSchools()
+    {
+        try {
+            $examTypes = ['CE', 'JSS3', 'SS2'];
+            $result = [];
+
+            foreach ($examTypes as $type) {
+                $examType = ExamType::where('name', $type)->with(['schools' => function($query) {
+                    $query->select('schools.id', 'schools.school_name', 'schools.school_code', 'schools.owner', 'schools.lg_id')
+                              ->with(['localGovernment:id,lg_name', 'pin:id,school_id,pin']);
+
+                }])->first();
+                
+
+                if ($examType) {
+                    $result[$type] = [
+                        'total' => count($examType->schools),
+                        'schools' => $examType->schools->map(function ($school) {
+                            return [
+                                'id' => $school->id,
+                                'school_name' => $school->school_name,
+                                'school_code' => $school->school_code,
+                                'owner' => $school->owner,
+                                'local_government' => $school->localGovernment->lg_name ?? null,
+                                'pin' => $school->pin->pin ?? null,
+                            ];
+                        }),
+                    ];
+                } else {
+                    $result[$type] = [
+                        'total' => 0,
+                        'schools' => [],
+                    ];
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $result,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error($e);
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while retrieving data.'
+            ], 500);
+        }
+    }
+
 
     public function addSchool(Request $request)
     {
@@ -67,6 +117,7 @@ class SchoolController extends Controller
                 'id' => $school->id,
                 'school_name' => $school->school_name,
                 'school_code' => $school->school_code,
+                'owner' => $school->owner,
                 'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
                 'exam_types' => $school->examTypes->pluck('name'),
             ];
@@ -93,6 +144,7 @@ class SchoolController extends Controller
         return $code;
     }
 
+
     public function viewSchool($schoolId)
     {
         $school = School::with('localGovernment', 'pin', 'examTypes')
@@ -108,6 +160,7 @@ class SchoolController extends Controller
             'id' => $school->id,
             'school_name' => $school->school_name,
             'school_code' => $school->school_code,
+            'owner' => $school->owner,
             'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
             'pin' => $school->pin ? $school->pin->pin : null,
             'exam_types' => $school->examTypes->pluck('name'),

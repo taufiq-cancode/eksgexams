@@ -20,7 +20,7 @@ class School extends Authenticatable
 
     public function localGovernment()
     {
-        return $this->belongsTo(LocalGovernment::class, 'lg_id');
+        return $this->belongsTo(LocalGovernment::class, 'lg_id', 'id');
     }
 
     public function pin()

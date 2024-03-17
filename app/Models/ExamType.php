@@ -14,5 +14,15 @@ class ExamType extends Model
         return $this->belongsToMany(Subject::class, 'exam_type_subject');
     }
 
+    public function schools()
+    {
+        return $this->belongsToMany(School::class, 'school_exam_type', 'exam_type_id', 'school_id');
+    }
+
+    public function students()
+    {
+        return $this->hasMany(Student::class, 'exam_type_id');
+    }
+
 }
 
