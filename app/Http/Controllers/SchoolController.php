@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\ExamType;
+use App\Models\Pin;
 use App\Models\School;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,7 @@ class SchoolController extends Controller
                     'id' => $school->id,
                     'school_name' => $school->school_name,
                     'school_code' => $school->school_code,
+                    'student_limit' => $school->student_limit,
                     'owner' => $school->owner,
                     'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
                     'pin' => $school->pin ? $school->pin->pin : null,
@@ -61,6 +63,7 @@ class SchoolController extends Controller
                                 'id' => $school->id,
                                 'school_name' => $school->school_name,
                                 'school_code' => $school->school_code,
+                                'student_limit' => $school->student_limit,
                                 'owner' => $school->owner,
                                 'local_government' => $school->localGovernment->lg_name ?? null,
                                 'pin' => $school->pin->pin ?? null,
@@ -88,46 +91,66 @@ class SchoolController extends Controller
         }
     }
 
-
     public function addSchool(Request $request)
     {
         try {
-            $data = $request->validate([
-                'school_name' => 'required|string',
-                'lg_id' => 'required|exists:local_governments,id', 
-                'exam_type_ids' => 'sometimes|array',
-                'exam_type_ids.*' => 'exists:exam_types,id'
-            ]);
-    
-            $schoolCode = $this->generateUniqueSchoolCode();
+            DB::beginTransaction();
 
-            $school = School::create([
-                'school_name' => $data['school_name'],
-                'lg_id' => $data['lg_id'],
-                'school_code' => $schoolCode,
-            ]);
+                $data = $request->validate([
+                    'school_name' => 'required|string',
+                    'school_code' => 'required|unique:schools,school_code',
+                    'school_pin' => 'required|unique:pins,pin,',
+                    'student_limit' => 'nullable|integer',
+                    'lg_id' => 'required|exists:local_governments,id', 
+                    'owner' => 'required|in:private,government',
+                    'exam_type_id' => 'required|integer|exists:exam_types,id',
+                ]);
 
-            if (isset($data['exam_type_ids'])) {
-                $school->examTypes()->attach($data['exam_type_ids']);
-            }
+                $school = School::create([
+                    'school_name' => $data['school_name'],
+                    'lg_id' => $data['lg_id'],
+                    'school_code' => $data['school_code'],
+                    'student_limit' => $data['student_limit'] ?? null,
+                ]);
 
-            $school = School::with('localGovernment', 'examTypes')->find($school->id);
+                $pin = Pin::create([
+                    'school_id' => $school->id,
+                    'school_code' => $school->school_code,
+                    'pin' => $request->school_pin
+                ]);
 
-            $transformedSchool = [
-                'id' => $school->id,
-                'school_name' => $school->school_name,
-                'school_code' => $school->school_code,
-                'owner' => $school->owner,
-                'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
-                'exam_types' => $school->examTypes->pluck('name'),
-            ];
+                DB::table('school_exam_type')->insert([
+                    'school_id' => $school->id,
+                    'exam_type_id' => $request->exam_type_id
+                ]);
+
+                if (isset($data['exam_type_ids'])) {
+                    $school->examTypes()->attach($data['exam_type_ids']);
+                }
+
+                $school = School::with('localGovernment', 'examTypes')->find($school->id);
+
+                $transformedSchool = [
+                    'id' => $school->id,
+                    'school_name' => $school->school_name,
+                    'school_code' => $school->school_code,
+                    'student_limit' => $school->student_limit,
+                    'owner' => $school->owner,
+                    'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
+                    'exam_types' => $school->examTypes->pluck('name'),
+                ];
+
+            DB::commit();
 
             return response()->json([
                 'message' => 'School added successfully',
-                'school' => $transformedSchool
+                'school' => $transformedSchool,
+                'pin' => $pin
             ]);
 
         } catch(\Exception $e) {
+            DB::rollBack();
+
             return response()->json([
                 'message' => 'Error adding school',
                 'error' => $e->getMessage()
@@ -135,62 +158,134 @@ class SchoolController extends Controller
         }
     }
 
-    private function generateUniqueSchoolCode()
-    {
-        do {
-            $code = rand(10000000, 99999999); 
-        } while (School::where('school_code', $code)->exists());
+    // private function generateUniqueSchoolCode()
+    // {
+    //     do {
+    //         $code = rand(10000000, 99999999); 
+    //     } while (School::where('school_code', $code)->exists());
 
-        return $code;
-    }
+    //     return $code;
+    // }
 
 
     public function viewSchool($schoolId)
     {
-        $school = School::with('localGovernment', 'pin', 'examTypes')
-                        ->find($schoolId);
+        try {
+            $school = School::with([
+                'localGovernment', 
+                'pin', 
+                'examTypes' => function ($query) use ($schoolId) {
+                    $query->with(['students' => function ($query) use ($schoolId) {
+                        $query->where('school_id', $schoolId)
+                            ->with('pin');
+                    }]);
+                }
+            ])->find($schoolId);
 
-        if (!$school) {
+            if (!$school) {
+                return response()->json([
+                    'message' => 'School not found'
+                ], 404);
+            }
+
+            $transformedSchool = [
+                'id' => $school->id,
+                'school_name' => $school->school_name,
+                'school_code' => $school->school_code,
+                'student_limit' => $school->student_limit,
+                'owner' => $school->owner,
+                'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
+                'pin' => $school->pin ? $school->pin->pin : null,
+                'exam_types' => $school->examTypes->map(function($examType) {
+                    return [
+                        'exam_type' => $examType->name,
+                        'students' => $examType->students
+                    ];
+                }),
+            ];
+
+            return response()->json($transformedSchool);
+
+        } catch(\Exception $e) {
+            \Log::error($e);
             return response()->json([
-                'message' => 'School not found'
-            ], 404);
+                'success' => false,
+                'message' => 'An error occurred while retrieving data.'
+            ], 500);
         }
-    
-        $transformedSchool = [
-            'id' => $school->id,
-            'school_name' => $school->school_name,
-            'school_code' => $school->school_code,
-            'owner' => $school->owner,
-            'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
-            'pin' => $school->pin ? $school->pin->pin : null,
-            'exam_types' => $school->examTypes->pluck('name'),
-        ];
-    
-        return response()->json($transformedSchool);
+        
     }
 
     public function updateSchool(Request $request, $schoolId)
     {
-        $school = School::find($schoolId);
-
-        if (!$school) {
+        try {
+            DB::beginTransaction();
+    
+            $school = School::find($schoolId);
+    
+            if (!$school) {
+                return response()->json([
+                    'message' => 'School not found'
+                ], 404);
+            }
+    
+            $data = $request->validate([
+                'school_name' => 'sometimes|string',
+                'school_code' => 'sometimes|unique:schools,school_code,'.$schoolId,
+                'school_pin' => 'sometimes|unique:pins,pin,'.$school->pin->id,
+                'student_limit' => 'sometimes|integer',
+                'lg_id' => 'sometimes|exists:local_governments,id', 
+                'owner' => 'sometimes|in:private,government',
+                'exam_type_id' => 'sometimes|integer|exists:exam_types,id',
+                'is_active' => 'sometimes|boolean'
+            ]);
+    
+            $updateData = [];
+    
+            foreach ($data as $key => $value) {
+                if ($request->filled($key)) {
+                    $updateData[$key] = $value;
+                }
+            }
+    
+            $school->update($updateData);
+    
+            if ($request->filled('school_pin') && $school->pin && $school->pin->pin != $request->school_pin) {
+                $school->pin->update(['pin' => $request->school_pin]);
+            }
+    
+            if ($request->filled('exam_type_id')) {
+                $school->examTypes()->sync([$request->exam_type_id]);
+            }
+    
+            $school = School::with('localGovernment', 'examTypes')->find($school->id);
+    
+            $transformedSchool = [
+                'id' => $school->id,
+                'school_name' => $school->school_name,
+                'school_code' => $school->school_code,
+                'owner' => $school->owner,
+                'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
+                'exam_types' => $school->examTypes->pluck('name'),
+                'is_active' => $school->is_active
+            ];
+    
+            DB::commit();
+    
             return response()->json([
-                'message' => 'School not found'
-            ], 404);
+                'message' => 'School updated successfully',
+                'school' => $transformedSchool
+            ]);
+    
+        } catch(\Exception $e) {
+            DB::rollBack();
+    
+            return response()->json([
+                'message' => 'Error updating school',
+                'error' => $e->getMessage()
+            ]);
         }
-
-        $data = $request->validate([
-            'school_name' => 'sometimes|max:255',
-            'owner' => 'sometimes'
-        ]);
-
-        $school->fill($data);
-        $school->save();
-
-        return response()->json([
-            'message' => 'School updated sucessfully',
-            'school' => $school
-        ]);
     }
+ 
    
 }

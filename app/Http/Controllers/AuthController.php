@@ -42,7 +42,8 @@ class AuthController extends Controller
     
             return response()->json([
                 'message' => 'Logged in successfully',
-                'token' => $token
+                'token' => $token,
+                'user' => $user,
             ]);
 
         } catch(\Exception $e) {
@@ -76,7 +77,9 @@ class AuthController extends Controller
                 'id' => $school->id,
                 'school_name' => $school->school_name,
                 'school_code' => $school->school_code,
+                'student_limit' => $school->student_limit,
                 'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
+                'is_active' => $school->is_active
             ];
         
             return response()->json([            

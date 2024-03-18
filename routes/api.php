@@ -31,13 +31,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware(['auth:sanctum', 'superadmin'])->group(function () {
     Route::put('/user/{userId}', [UserController::class, 'updateUser']);
+    Route::get('/users', [UserController::class, 'allUsers']);
     
-    // SUBJECT ROUTES
+    // SCHOOL ROUTES
     Route::get('/schools', [SchoolController::class, 'allSchools']);
     Route::get('/sorted-schools', [SchoolController::class, 'sortedSchools']);
     Route::post('/schools', [SchoolController::class, 'addSchool']);
     Route::get('/school/{schoolId}', [SchoolController::class, 'viewSchool']);
     Route::put('/school/{schoolId}', [SchoolController::class, 'updateSchool']);
+
 
     // SUBJECT ROUTES
     Route::post('/exam-type/add-subject', [SubjectController::class, 'addSubjectToExamType']);

@@ -9,6 +9,23 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+    public function allUsers()
+    {
+        try {
+    
+            $users = User::all();
+    
+            return response()->json([
+                'users' => $users,
+            ], 201);
+
+        } catch(\Exception $e){
+            return response()->json([
+                'message' => 'Error retrieving users',
+                'error' => $e->getMessage()
+            ]);
+        }
+    } 
     public function createUser(Request $request)
     {
         try {
@@ -50,14 +67,16 @@ class UserController extends Controller
             $data = $request->validate([
                 'name' => 'sometimes|string|max:255',
                 'email' => 'sometimes|string|email|max:255|unique:users,email,' . $userId,
-                'role' => 'sometimes|string|max:255'
+                'role' => 'sometimes|string|max:255',
+                'is_active' => 'sometimes|boolean'
             ]);
 
             $user->fill($data);
             $user->save();
 
             return response()->json([
-                'message' => 'User updated successfully'
+                'message' => 'User updated successfully',
+                'user' => $user
             ]);
         } catch(\Exception $e) {
             return response()->json([

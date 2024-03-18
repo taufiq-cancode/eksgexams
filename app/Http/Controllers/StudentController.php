@@ -207,6 +207,7 @@ class StudentController extends Controller
                 'surname' => 'required|string',
                 'othername' => 'nullable|string',
                 'date_of_birth' => 'nullable|date',
+                'gender' => 'required|in:male,female',
                 'state_of_origin' => 'required|string',
                 'lga' => 'required|string',
                 'passport' => 'nullable|string',
@@ -221,6 +222,7 @@ class StudentController extends Controller
                 ->where('othername', $request->othername)
                 ->where('date_of_birth', $request->date_of_birth)
                 ->where('school_id', $school->id)
+                ->where('exam_type_id', $request->exam_type_id)
                 ->first();
 
             if ($existingStudent) {
@@ -238,6 +240,7 @@ class StudentController extends Controller
                 'surname' => $request->surname,
                 'othername' => $request->othername,
                 'date_of_birth' => $request->date_of_birth,
+                'gender' => $request->gender,
                 'state_of_origin' => $request->state_of_origin,
                 'lga' => $request->lga,
                 'passport' => $request->passport,

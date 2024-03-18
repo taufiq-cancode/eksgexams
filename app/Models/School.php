@@ -14,8 +14,10 @@ class School extends Authenticatable
     protected $fillable = [
         'school_name',
         'school_code',
+        'student_limit',
         'owner',
-        'lg_id'
+        'lg_id',
+        'is_active'
     ];
 
     public function localGovernment()
