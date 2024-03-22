@@ -16,4 +16,9 @@ class Score extends Model
         'ca1_score',
         'ca2_score',
     ];
+    
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class, 'subject_id');
+    }
 }

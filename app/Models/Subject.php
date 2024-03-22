@@ -9,9 +9,15 @@ class Subject extends Model
 {
     use HasFactory;
 
+    // public function examTypes()
+    // {
+    //     return $this->belongsToMany(ExamType::class, 'exam_type_subject');
+    // }
+    
     public function examTypes()
     {
-        return $this->belongsToMany(ExamType::class, 'exam_type_subject');
+        return $this->belongsToMany(ExamType::class, 'exam_type_subject')
+                    ->withPivot('is_compulsory');
     }
 
 }

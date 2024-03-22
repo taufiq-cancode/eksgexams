@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class StudentController extends Controller
 {
@@ -32,7 +33,13 @@ class StudentController extends Controller
                     'date_of_birth' => $student->date_of_birth,
                     'state_of_origin' => $student->state_of_origin,
                     'local_government' => $student->lga,
+                    'passport' => $student->passport,
+                    'exam_type' => $student->examType->name ?? null,
                     'pin' => $student->pin ? $student->pin->pin : null,
+                    'created_at' => $student->created_at,
+                    'school_id' => $student->school_id, 
+                    'school_code' => $student->school->school_code,
+                    'school_name' => $student->school->school_name,
                     'scores' => $student->scores
                 ];
             });
@@ -61,13 +68,23 @@ class StudentController extends Controller
                     ->get()
                     ->map(function ($student) {
                         return [
-                            'student_code' => $student->student_code,
-                            'name' => $student->firstname . ' ' . $student->surname . ' ' . $student->othername,
-                            'date_of_birth' => $student->date_of_birth,
+                            'id' => $student->id,
+                            'student_code' =>$student->student_code,
+                            'firstname' => $student->firstname,
+                            'surname' => $student->surname,
+                            'othername' => $student->othername,
                             'gender' => $student->gender,
-                            'school' => $student->school->school_name ?? null,
+                            'date_of_birth' => $student->date_of_birth,
+                            'state_of_origin' => $student->state_of_origin,
+                            'local_government' => $student->lga,
+                            'passport' => $student->passport,
+                            'exam_type' => $student->examType->name ?? null,
+                            'pin' => $student->pin ? $student->pin->pin : null,
+                            'created_at' => $student->created_at,
+                            'school_id' => $student->school_id, 
                             'school_code' => $student->school->school_code,
-                            'pin' => $student->pin->pin ?? null,
+                            'school_name' => $student->school->school_name,
+                            'scores' => $student->scores
                         ];
                     });
 
@@ -101,13 +118,23 @@ class StudentController extends Controller
                         ->get()
                         ->map(function ($student) {
                             return [
-                                'student_code' => $student->student_code,
-                                'name' => $student->firstname . ' ' . $student->surname . ' ' . $student->othername,
+                                'id' => $student->id,
+                                'student_code' =>$student->student_code,
+                                'firstname' => $student->firstname,
+                                'surname' => $student->surname,
+                                'othername' => $student->othername,
+                                'gender' => $student->gender,
+                                'date_of_birth' => $student->date_of_birth,
+                                'state_of_origin' => $student->state_of_origin,
+                                'local_government' => $student->lga,
+                                'passport' => $student->passport,
                                 'exam_type' => $student->examType->name ?? null,
-                                'pin' => $student->pin->pin ?? null,
+                                'pin' => $student->pin ? $student->pin->pin : null,
+                                'created_at' => $student->created_at,
                                 'school_id' => $student->school_id, 
                                 'school_code' => $student->school->school_code,
-                                'school_name' => $student->school->school_name
+                                'school_name' => $student->school->school_name,
+                                'scores' => $student->scores
                             ];
                         });
 
@@ -134,18 +161,28 @@ class StudentController extends Controller
             foreach ($examTypes as $id => $name) {
                 $students = Student::where('school_id', $schoolId)
                             ->where('exam_type_id', $id)
-                            ->with(['school:id,school_name,school_code', 'pin:id,student_id,pin'])
+                            ->with(['school:id,school_name,school_code', 'pin:id,student_id,pin', 'scores'])
                             ->orderBy('surname')
                             ->get()
                             ->map(function ($student) {
                                 return [
-                                    'student_code' => $student->student_code,
-                                    'name' => $student->firstname . ' ' . $student->surname . ' ' . $student->othername,
-                                    'date_of_birth' => $student->date_of_birth,
+                                    'id' => $student->id,
+                                    'student_code' =>$student->student_code,
+                                    'firstname' => $student->firstname,
+                                    'surname' => $student->surname,
+                                    'othername' => $student->othername,
                                     'gender' => $student->gender,
-                                    'school' => $student->school->school_name ?? null,
+                                    'date_of_birth' => $student->date_of_birth,
+                                    'state_of_origin' => $student->state_of_origin,
+                                    'local_government' => $student->lga,
+                                    'passport' => $student->passport,
+                                    'exam_type' => $student->examType->name ?? null,
+                                    'pin' => $student->pin ? $student->pin->pin : null,
+                                    'created_at' => $student->created_at,
+                                    'school_id' => $student->school_id, 
                                     'school_code' => $student->school->school_code,
-                                    'pin' => $student->pin->pin ?? null,
+                                    'school_name' => $student->school->school_name,
+                                    'scores' => $student->scores
                                 ];
                             });
 
@@ -176,10 +213,23 @@ class StudentController extends Controller
                             ->get()
                             ->map(function ($student) {
                                 return [
-                                    'student_code' => $student->student_code,
-                                    'name' => $student->firstname . ' ' . $student->surname . ' ' . $student->othername,
+                                    'id' => $student->id,
+                                    'student_code' =>$student->student_code,
+                                    'firstname' => $student->firstname,
+                                    'surname' => $student->surname,
+                                    'othername' => $student->othername,
+                                    'gender' => $student->gender,
+                                    'date_of_birth' => $student->date_of_birth,
+                                    'state_of_origin' => $student->state_of_origin,
+                                    'local_government' => $student->lga,
+                                    'passport' => $student->passport,
                                     'exam_type' => $student->examType->name ?? null,
-                                    'pin' => $student->pin->pin ?? null,
+                                    'pin' => $student->pin ? $student->pin->pin : null,
+                                    'created_at' => $student->created_at,
+                                    'school_id' => $student->school_id, 
+                                    'school_code' => $student->school->school_code,
+                                    'school_name' => $student->school->school_name,
+                                    'scores' => $student->scores
                                 ];
                             });
 
@@ -202,11 +252,18 @@ class StudentController extends Controller
         try {
             DB::beginTransaction();
 
+            $school = auth()->user();
+
+            if ($school->student_limit <= 0) {
+                return response()->json([
+                    'message' => 'Student registration limit reached. No more students can be registered.',
+                ], 403);             }
+
             $request->validate([
                 'firstname' => 'required|string',
                 'surname' => 'required|string',
                 'othername' => 'nullable|string',
-                'date_of_birth' => 'nullable|date',
+                'date_of_birth' => 'required|date',
                 'gender' => 'required|in:male,female',
                 'state_of_origin' => 'required|string',
                 'lga' => 'required|string',
@@ -214,8 +271,6 @@ class StudentController extends Controller
                 'exam_type_id' => 'required|exists:exam_types,id',
                 'ca_scores' => 'required|array'
             ]);
-
-            $school = auth()->user();
 
             $existingStudent = Student::where('firstname', $request->firstname)
                 ->where('surname', $request->surname)
@@ -231,11 +286,9 @@ class StudentController extends Controller
                 ], 409);
             }
 
-            $student_code = $this->generateUniqueStudentCode();
-
             $student = Student::create([
                 'school_id' => $school->id,
-                'student_code' => $student_code,
+                'student_code' => "temp",
                 'firstname' => $request->firstname,
                 'surname' => $request->surname,
                 'othername' => $request->othername,
@@ -246,6 +299,9 @@ class StudentController extends Controller
                 'passport' => $request->passport,
                 'exam_type_id' => $request->exam_type_id,
             ]);
+
+            $student_code = $school->school_code . '/' . $student->id;
+            $student->update(['student_code' => $student_code]);
 
             $this->generatePinForStudent($student->id, $student_code);
 
@@ -269,6 +325,8 @@ class StudentController extends Controller
                 }
             }
 
+            $school->decrement('student_limit');
+
             DB::commit();
 
             return response()->json([
@@ -277,18 +335,25 @@ class StudentController extends Controller
                 'scores' => $createdScores
             ]);
 
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Validation error',
+                'error' => $e->getMessage(),
+            ], 422);
+
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'message' => 'Error registering student',
                 'error' => $e->getMessage(),
-            ]);
+            ], 500);
         }
     }
     
     public function viewStudent($studentId)
     {
-        $student = Student::with('scores', 'pin', 'examType', 'school')
+        $student = Student::with('scores.subject.examTypes', 'pin', 'examType', 'school')
                         ->find($studentId);
 
         if (!$student) {
@@ -296,6 +361,8 @@ class StudentController extends Controller
                 'message' => 'Student not found'
             ], 404);
         }
+
+        $examTypeId = $student->examType->id ?? null;
     
         $transformedStudent = [
             'id' => $student->id,
@@ -307,12 +374,36 @@ class StudentController extends Controller
             'date_of_birth' => $student->date_of_birth,
             'state_of_origin' => $student->state_of_origin,
             'local_government' => $student->lga,
+            'passport' => $student->passport,
+            'exam_type' => $student->examType->name ?? null,
             'pin' => $student->pin ? $student->pin->pin : null,
-            'scores' => $student->scores
+            'created_at' => $student->created_at,
+            'school_id' => $student->school_id, 
+            'school_code' => $student->school->school_code,
+            'school_name' => $student->school->school_name,
+            'scores' => $student->scores->map(function ($score) use ($examTypeId) {
+                $isCompulsory = false;
+                if ($examTypeId) {
+                    $isCompulsory = $score->subject->examTypes->contains(function ($examType) use ($examTypeId) {
+                        return $examType->id == $examTypeId && $examType->pivot->is_compulsory;
+                    });
+                }
+    
+                return [
+                    'id' => $score->id,
+                    'student_id' => $score->student_id,
+                    'subject_id' => $score->subject_id,
+                    'subject_name' => $score->subject->name, 
+                    'is_compulsory' => $isCompulsory,
+                    'ca1_score' => $score->ca1_score,
+                    'ca2_score' => $score->ca2_score,
+                ];
+            }),
         ];
     
         return response()->json($transformedStudent);
     }
+    
     
     public function updateStudent(Request $request, $studentId)
     {
@@ -361,6 +452,13 @@ class StudentController extends Controller
                 'scores' => $student->scores
             ]);
 
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Validation error',
+                'error' => $e->getMessage(),
+            ], 422);
+
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -396,14 +494,6 @@ class StudentController extends Controller
         }
     }
     
-    private function generateUniqueStudentCode()
-    {
-        do {
-            $code = rand(10000000, 99999999); 
-        } while (Student::where('student_code', $code)->exists());
-
-        return $code;
-    }
     private function generatePinForStudent($studentId, $studentCode)
     {
         $pin = Str::random(6);
@@ -416,6 +506,4 @@ class StudentController extends Controller
             'pin' => $pin
         ]);
     }
-
-    
 }

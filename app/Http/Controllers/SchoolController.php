@@ -24,7 +24,7 @@ class SchoolController extends Controller
                     'id' => $school->id,
                     'school_name' => $school->school_name,
                     'school_code' => $school->school_code,
-                    'student_limit' => $school->student_limit,
+                    'pin_limit' => $school->student_limit,
                     'owner' => $school->owner,
                     'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
                     'pin' => $school->pin ? $school->pin->pin : null,
@@ -49,7 +49,7 @@ class SchoolController extends Controller
 
             foreach ($examTypes as $type) {
                 $examType = ExamType::where('name', $type)->with(['schools' => function($query) {
-                    $query->select('schools.id', 'schools.school_name', 'schools.school_code', 'schools.owner', 'schools.lg_id')
+                    $query->select('schools.id', 'schools.school_name', 'schools.school_code', 'schools.owner', 'schools.lg_id', 'schools.student_limit')
                               ->with(['localGovernment:id,lg_name', 'pin:id,school_id,pin']);
 
                 }])->first();
@@ -63,7 +63,7 @@ class SchoolController extends Controller
                                 'id' => $school->id,
                                 'school_name' => $school->school_name,
                                 'school_code' => $school->school_code,
-                                'student_limit' => $school->student_limit,
+                                'pin_limit' => $school->student_limit,
                                 'owner' => $school->owner,
                                 'local_government' => $school->localGovernment->lg_name ?? null,
                                 'pin' => $school->pin->pin ?? null,
@@ -100,7 +100,7 @@ class SchoolController extends Controller
                     'school_name' => 'required|string',
                     'school_code' => 'required|unique:schools,school_code',
                     'school_pin' => 'required|unique:pins,pin,',
-                    'student_limit' => 'nullable|integer',
+                    'pin_limit' => 'nullable|integer',
                     'lg_id' => 'required|exists:local_governments,id', 
                     'owner' => 'required|in:private,government',
                     'exam_type_id' => 'required|integer|exists:exam_types,id',
@@ -110,7 +110,7 @@ class SchoolController extends Controller
                     'school_name' => $data['school_name'],
                     'lg_id' => $data['lg_id'],
                     'school_code' => $data['school_code'],
-                    'student_limit' => $data['student_limit'] ?? null,
+                    'student_limit' => $data['pin_limit'] ?? null,
                 ]);
 
                 $pin = Pin::create([
@@ -134,7 +134,7 @@ class SchoolController extends Controller
                     'id' => $school->id,
                     'school_name' => $school->school_name,
                     'school_code' => $school->school_code,
-                    'student_limit' => $school->student_limit,
+                    'pin_limit' => $school->student_limit,
                     'owner' => $school->owner,
                     'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
                     'exam_types' => $school->examTypes->pluck('name'),
@@ -192,10 +192,10 @@ class SchoolController extends Controller
                 'id' => $school->id,
                 'school_name' => $school->school_name,
                 'school_code' => $school->school_code,
-                'student_limit' => $school->student_limit,
+                'pin' => $school->pin ? $school->pin->pin : null,
+                'pin_limit' => $school->student_limit,
                 'owner' => $school->owner,
                 'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
-                'pin' => $school->pin ? $school->pin->pin : null,
                 'exam_types' => $school->examTypes->map(function($examType) {
                     return [
                         'exam_type' => $examType->name,
@@ -233,7 +233,7 @@ class SchoolController extends Controller
                 'school_name' => 'sometimes|string',
                 'school_code' => 'sometimes|unique:schools,school_code,'.$schoolId,
                 'school_pin' => 'sometimes|unique:pins,pin,'.$school->pin->id,
-                'student_limit' => 'sometimes|integer',
+                'pin_limit' => 'sometimes|integer',
                 'lg_id' => 'sometimes|exists:local_governments,id', 
                 'owner' => 'sometimes|in:private,government',
                 'exam_type_id' => 'sometimes|integer|exists:exam_types,id',
@@ -264,6 +264,7 @@ class SchoolController extends Controller
                 'id' => $school->id,
                 'school_name' => $school->school_name,
                 'school_code' => $school->school_code,
+                'pin_limit' => $school->student_limit,
                 'owner' => $school->owner,
                 'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
                 'exam_types' => $school->examTypes->pluck('name'),

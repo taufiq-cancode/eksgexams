@@ -24,6 +24,13 @@ Route::post('/super-admin/login', [AuthController::class, 'superAdminLogin']);
 Route::post('/school-admin/login', [AuthController::class, 'schoolAdminLogin']);
 Route::post('/student/login', [AuthController::class, 'studentLogin']);
 
+Route::get('/states-lga', function () {
+    $jsonPath = storage_path('app/states_lga.json');
+    $json = file_get_contents($jsonPath);
+    $data = json_decode($json, true);
+
+    return response()->json($data);
+});
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -43,6 +50,10 @@ Route::middleware(['auth:sanctum', 'superadmin'])->group(function () {
 
     // SUBJECT ROUTES
     Route::post('/exam-type/add-subject', [SubjectController::class, 'addSubjectToExamType']);
+    Route::get('/subjects', [SubjectController::class, 'allSubjects']);
+    Route::get('/sorted-subjects', [SubjectController::class, 'sortedSubjects']);
+
+
 
     // STUDENT ROUTES
     Route::get('/students', [StudentController::class, 'allStudents']);
@@ -60,5 +71,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/student/{studentId}', [StudentController::class, 'viewStudent']);
     Route::put('/student/{studentId}', [StudentController::class, 'updateStudent']);
     Route::delete('/student/{studentId}', [StudentController::class, 'deleteStudent']);
+    
+    Route::get('/subjects', [SubjectController::class, 'allSubjects']);
+    Route::get('/sorted-subjects', [SubjectController::class, 'sortedSubjects']);
+
+
 
 });

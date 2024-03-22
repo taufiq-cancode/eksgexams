@@ -9,6 +9,35 @@ use Illuminate\Http\Request;
 
 class SubjectController extends Controller
 {
+    public function allSubjects()
+    {
+        $subjects = Subject::all()->makeHidden(['created_at', 'updated_at']);
+
+        return response()->json($subjects);
+    }
+    
+    public function sortedSubjects()
+    {
+        $examTypes = ExamType::with(['subjects' => function ($query) {
+            $query->withPivot('is_compulsory');
+        }])->get();
+
+        $result = $examTypes->map(function ($examType) {
+            return [
+                'exam_type' => $examType->name,
+                'subjects' => $examType->subjects->map(function ($subject) {
+                    return [
+                        'subject_id' => $subject->id,
+                        'subject_name' => $subject->name,
+                        'is_compulsory' => $subject->pivot->is_compulsory
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json($result);
+    }
+    
     public function addSubjectToExamType(Request $request)
     {
         $request->validate([
@@ -24,6 +53,8 @@ class SubjectController extends Controller
         $examType->subjects()->attach($subjectId, ['is_compulsory' => $isCompulsory]);
 
         return response()->json(['message' => 'Subject added to Exam Type successfully']);
-    }    
+    } 
+    
+    
 
 }

@@ -11,7 +11,8 @@ class ExamType extends Model
 
     public function subjects()
     {
-        return $this->belongsToMany(Subject::class, 'exam_type_subject');
+        return $this->belongsToMany(Subject::class, 'exam_type_subject')
+                    ->withPivot('is_compulsory');
     }
 
     public function schools()
@@ -23,6 +24,8 @@ class ExamType extends Model
     {
         return $this->hasMany(Student::class, 'exam_type_id');
     }
+    
+    
 
 }
 

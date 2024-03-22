@@ -37,6 +37,12 @@ class AuthController extends Controller
                     'message' => 'Access denied'
                 ], 403);
             }
+
+            if ($user->is_active === false){
+                return response()->json([
+                    'message' => 'Access denied'
+                ], 403);
+            }
     
             $token = $user->createToken('authToken')->plainTextToken;
     
@@ -70,6 +76,12 @@ class AuthController extends Controller
                     'school_code' => ['The provided credentials are incorrect.'],
                 ]);
             }
+
+            if ($school->is_active === false){
+                return response()->json([
+                    'message' => 'Access denied'
+                ], 403);
+            }
     
             $token = $school->createToken('authToken')->plainTextToken;
 
@@ -77,7 +89,7 @@ class AuthController extends Controller
                 'id' => $school->id,
                 'school_name' => $school->school_name,
                 'school_code' => $school->school_code,
-                'student_limit' => $school->student_limit,
+                'pin_limit' => $school->student_limit,
                 'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
                 'is_active' => $school->is_active
             ];
