@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\ExamType;
+use App\Models\LocalGovernment;
 use App\Models\Pin;
 use App\Models\School;
 use Illuminate\Http\Request;
@@ -244,7 +245,11 @@ class SchoolController extends Controller
     
             foreach ($data as $key => $value) {
                 if ($request->filled($key)) {
-                    $updateData[$key] = $value;
+                    if ($key == 'pin_limit') {
+                        $updateData['student_limit'] = $value;
+                    } else {
+                        $updateData[$key] = $value;
+                    }
                 }
             }
     
@@ -287,6 +292,79 @@ class SchoolController extends Controller
             ]);
         }
     }
- 
-   
+
+    public function lgaSchools()
+    {
+        $localGovernments = LocalGovernment::with(['schools' => function($query) {
+            $query->whereHas('examTypes', function($q) {
+                $q->where('id', 2);
+            });
+        }])->get();
+
+        $transformedLocalGovernments = $localGovernments->map(function ($localGovernment) {
+            return [
+                'id' => $localGovernment->id,
+                'code' => $localGovernment->lg_code,
+                'name' => $localGovernment->lg_name,
+                'schools' => $localGovernment->schools->map(function ($school) {
+                    return [
+                        'school_id' => $school->id,
+                        'owner' => $school->owner,
+                        'name' => $school->school_name,
+                        'school_code' => $school->school_code,
+                    ];
+                })
+            ];
+        });
+
+        return response()->json($transformedLocalGovernments);
+
+
+    }
+
+    public function generateBroadSheet(Request $request, $schoolId)
+    {
+        $school = School::with(['students', 'students.scores.subject'])->find($schoolId);
+
+        if (!$school) {
+            return response()->json(['message' => 'School not found'], 404);
+        }
+
+        $broadSheet = $school->students->map(function ($student) {
+            return [
+                'student_id' => $student->id,
+                'student_code' => $student->student_code,
+                'firstname' => $student->firstname,
+                'othername' => $student->othername,
+                'surname' => $student->surname,
+                'gender' => $student->gender,
+                'state_of_origin' => $student->state_of_origin,
+                'lga' => $student->lga,
+                'date_of_birth' => $student->date_of_birth,
+                'scores' => $student->scores->map(function ($score) {
+                    return [
+                        'subject' => $score->subject->name,
+                        'ca1_score' => $score->ca1_score,
+                        'ca_score' => $score->ca1_score,
+                    ];
+                })
+            ];
+        });
+
+        $examTypes = $school->examTypes->pluck('name')->join(', ');
+
+        $schoolDetails = [
+            'id' => $school->id,
+            'name' => $school->school_name,
+            'school_code' => $school->school_code,
+            'exam_type' => $examTypes,
+            'local_government' => $school->localGovernment->lg_name,
+        ];
+
+        return response()->json([
+            'school' => $schoolDetails,
+            'broad_sheet' => $broadSheet
+        ]);
+    }
+
 }

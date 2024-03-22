@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ExamType;
 use App\Models\School;
 use App\Models\Score;
+use App\Models\Setting;
 use App\Models\Student;
 use App\Models\Subject;
 use Illuminate\Http\Request;
@@ -250,6 +251,13 @@ class StudentController extends Controller
     public function registerStudent(Request $request)
     {
         try {
+
+            $registrationActive = Setting::where('key', 'student_registration_active')->first()->value === 'true';
+
+            if (!$registrationActive) {
+                return response()->json(['message' => 'Student registration is currently disabled'], 403);
+            }
+
             DB::beginTransaction();
 
             $school = auth()->user();

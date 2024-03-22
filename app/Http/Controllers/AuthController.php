@@ -54,9 +54,9 @@ class AuthController extends Controller
 
         } catch(\Exception $e) {
             return response()->json([
-                'message' => 'Error creating user',
+                'message' => 'Error logging in',
                 'error' => $e->getMessage()
-            ]);
+            ], 500);
         }
     }
 
@@ -72,12 +72,12 @@ class AuthController extends Controller
             $school = School::with('pin')->where('school_code', $request->school_code)->first();
     
             if (!$school || !$school->pin || $request->pin !== $school->pin->pin) { 
-                throw ValidationException::withMessages([
-                    'school_code' => ['The provided credentials are incorrect.'],
-                ]);
+                return response()->json([
+                    'message' => 'Incorrect login credentials'
+                ], 401);
             }
 
-            if ($school->is_active === false){
+            if ($school->is_active == false){
                 return response()->json([
                     'message' => 'Access denied'
                 ], 403);
@@ -105,7 +105,7 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Error logging in',
                 'error' => $e->getMessage()
-            ]);
+            ], 500);
         }
            
     }
@@ -121,9 +121,9 @@ class AuthController extends Controller
             $student = Student::with('pin')->where('student_code', $request->student_code)->first();
     
             if (!$student || !$student->pin || $request->pin !== $student->pin->pin) { 
-                throw ValidationException::withMessages([
-                    'student_code' => ['The provided credentials are incorrect.'],
-                ]);
+                return response()->json([
+                    'message' => 'Incorrect login credentials'
+                ], 401);
             }
     
             $transformedStudent = [

@@ -34,5 +34,9 @@ class School extends Authenticatable
     {
         return $this->belongsToMany(ExamType::class, 'school_exam_type', 'school_id', 'exam_type_id');
     }
+    public function students()
+    {
+        return $this->hasMany(Student::class);
+    }
 
 }
