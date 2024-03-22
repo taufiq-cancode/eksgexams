@@ -265,7 +265,14 @@ class StudentController extends Controller
             if ($school->student_limit <= 0) {
                 return response()->json([
                     'message' => 'Student registration limit reached. No more students can be registered.',
-                ], 403);             }
+                ], 403);             
+            }
+
+            if ($school->is_active == false) {
+                return response()->json([
+                    'message' => 'Your school has been deactivated.',
+                ], 403);             
+            }
 
             $request->validate([
                 'firstname' => 'required|string',

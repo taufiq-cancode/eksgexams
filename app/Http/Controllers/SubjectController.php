@@ -54,7 +54,5 @@ class SubjectController extends Controller
 
         return response()->json(['message' => 'Subject added to Exam Type successfully']);
     } 
-    
-    
 
 }
