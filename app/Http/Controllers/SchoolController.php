@@ -7,6 +7,7 @@ use App\Models\ExamType;
 use App\Models\LocalGovernment;
 use App\Models\Pin;
 use App\Models\School;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -82,7 +83,8 @@ class SchoolController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $result,
-            ]);
+            ], 200);
+            
         } catch (\Exception $e) {
             \Log::error($e);
             return response()->json([
@@ -155,7 +157,7 @@ class SchoolController extends Controller
             return response()->json([
                 'message' => 'Error adding school',
                 'error' => $e->getMessage()
-            ]);
+            ], 500);
         }
     }
 
@@ -188,6 +190,9 @@ class SchoolController extends Controller
                     'message' => 'School not found'
                 ], 404);
             }
+            
+            $registrationSetting = Setting::where('key', 'student_registration_active')->first();
+            $isRegistrationActive = $registrationSetting && $registrationSetting->value === 'true';
 
             $transformedSchool = [
                 'id' => $school->id,
@@ -197,6 +202,8 @@ class SchoolController extends Controller
                 'pin_limit' => $school->student_limit,
                 'owner' => $school->owner,
                 'local_government' => $school->localGovernment ? $school->localGovernment->lg_name : null,
+                'is_active' => $school->is_active,
+                'is_registration_active' => $isRegistrationActive,
                 'exam_types' => $school->examTypes->map(function($examType) {
                     return [
                         'exam_type' => $examType->name,
@@ -289,7 +296,7 @@ class SchoolController extends Controller
             return response()->json([
                 'message' => 'Error updating school',
                 'error' => $e->getMessage()
-            ]);
+            ], 500);
         }
     }
 
@@ -318,8 +325,6 @@ class SchoolController extends Controller
         });
 
         return response()->json($transformedLocalGovernments);
-
-
     }
 
     public function generateBroadSheet(Request $request, $schoolId)
@@ -337,6 +342,7 @@ class SchoolController extends Controller
                 'firstname' => $student->firstname,
                 'othername' => $student->othername,
                 'surname' => $student->surname,
+                'passport' => $student->passport,
                 'gender' => $student->gender,
                 'state_of_origin' => $student->state_of_origin,
                 'lga' => $student->lga,

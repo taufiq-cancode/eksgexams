@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\School;
+use App\Models\Setting;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -118,7 +119,7 @@ class AuthController extends Controller
                 'pin' => 'required',
             ]);
     
-            $student = Student::with('pin')->where('student_code', $request->student_code)->first();
+            $student = Student::with('pin', 'school')->where('student_code', $request->student_code)->first();
     
             if (!$student || !$student->pin || $request->pin !== $student->pin->pin) { 
                 return response()->json([
@@ -132,10 +133,25 @@ class AuthController extends Controller
                 'firstname' => $student->firstname,
                 'surname' => $student->surname,
                 'othername' => $student->othername,
+                'gender' => $student->gender,
+                'passport' => $student->passport,
                 'date_of_birth' => $student->date_of_birth,
                 'state_of_origin' => $student->state_of_origin,
                 'local_government' => $student->lga,
-                'ca_scores' => $student->scores
+                'ca_scores' => $student->scores->map(function ($score) {
+                    return [
+                        'subject_id' => $score->subject_id,
+                        'subject_name' => $score->subject->name, 
+                        'ca1_score' => $score->ca1_score,
+                        'ca2_score' => $score->ca2_score,
+                    ];
+                }),
+                'school' => [
+                    'school_id' => $student->school->id,
+                    'school_name' => $student->school->school_name,
+                    'school_code' => $student->school->school_code,
+                    'school_lg' => $student->school->localGovernment->lg_name,
+                ]
             ];
         
             return response()->json([            
@@ -147,10 +163,51 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Error logging in',
                 'error' => $e->getMessage()
-            ]);
+            ], 401);
         }
            
     }
+
+    // public function checkStatus(Request $request)
+    // {
+    //     $school = auth()->user();
+        
+    //     if (!$school) {
+    //         return response()->json(['message' => 'Unauthorized'], 401);
+    //     }
+
+    //     $isActive = (bool) $school->is_active;
+    //     $registrationSetting = Setting::where('key', 'student_registration_active')->first();
+
+    //     $isRegistrationActive = $registrationSetting && $registrationSetting->value === 'true';
+
+    //     return response()->json([
+    //         'is_school_active' => $isActive,
+    //         'is_registration_active' => $isRegistrationActive
+    //     ]);
+    // }
+    
+    public function checkStatus(Request $request)
+    {
+        $school = auth()->user();
+        $isActive = $school ? (bool) $school->is_active : null; 
+        $pin_limit = $school->student_limit;
+    
+        $registrationSetting = Setting::where('key', 'student_registration_active')->first();
+        $isRegistrationActive = $registrationSetting && $registrationSetting->value === 'true';
+    
+        $responseData = [
+            'is_registration_active' => $isRegistrationActive
+        ];
+    
+        if ($school) {
+            $responseData['is_school_active'] = $isActive;
+            $responseData['pin_limit'] = $pin_limit;
+        }
+    
+        return response()->json($responseData);
+    }
+
 
   
 }

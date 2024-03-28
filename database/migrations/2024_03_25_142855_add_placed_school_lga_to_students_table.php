@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->enum('role', ['super_admin', 'school_admin', 'user'])->default('user');
+        Schema::table('students', function (Blueprint $table) {
+            $table->string('placed_school_lga')->nullable();
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('role');
+        Schema::table('students', function (Blueprint $table) {
+            //
         });
     }
 };

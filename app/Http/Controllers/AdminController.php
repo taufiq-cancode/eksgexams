@@ -17,4 +17,15 @@ class AdminController extends Controller
 
         return response()->json(['message' => 'Student registration setting updated']);
     }
+    
+    public function checkStatus(Request $request)
+    {
+        $registrationSetting = Setting::where('key', 'student_registration_active')->first();
+
+        $isRegistrationActive = $registrationSetting && $registrationSetting->value === 'true';
+
+        return response()->json([
+            'is_registration_active' => $isRegistrationActive
+        ]);
+    }
 }

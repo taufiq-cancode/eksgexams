@@ -23,7 +23,7 @@ class UserController extends Controller
             return response()->json([
                 'message' => 'Error retrieving users',
                 'error' => $e->getMessage()
-            ]);
+            ], 500);
         }
     } 
     public function createUser(Request $request)
@@ -50,7 +50,7 @@ class UserController extends Controller
             return response()->json([
                 'message' => 'Error creating user',
                 'error' => $e->getMessage()
-            ]);
+            ], 500);
         }
     }  
     public function updateUser(Request $request, $userId)
@@ -77,12 +77,13 @@ class UserController extends Controller
             return response()->json([
                 'message' => 'User updated successfully',
                 'user' => $user
-            ]);
+            ], 200);
+            
         } catch(\Exception $e) {
             return response()->json([
                 'message' => 'Error creating user',
                 'error' => $e->getMessage()
-            ]);
+            ], 500);
         }
     }
 }

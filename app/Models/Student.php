@@ -20,7 +20,9 @@ class Student extends Model
         'gender',
         'state_of_origin',
         'lga',
-        'passport'
+        'passport',
+        'placed_school_id',
+        'placed_school_lga'
     ];
 
     public function school()
@@ -41,5 +43,10 @@ class Student extends Model
     public function pin()
     {
         return $this->hasOne(StudentPin::class);
+    }
+    
+    public function setPlacedSchoolIdAttribute($value)
+    {
+        $this->attributes['placed_school_id'] = $value == 0 ? null : $value;
     }
 }

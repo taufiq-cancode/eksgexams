@@ -39,6 +39,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware(['auth:sanctum', 'superadmin'])->group(function () {
     Route::post('/toggle-reg', [AdminController::class, 'toggleStudentReg']);
+    Route::get('/reg-status', [AdminController::class, 'checkStatus']);
+
 
     Route::put('/user/{userId}', [UserController::class, 'updateUser']);
     Route::get('/users', [UserController::class, 'allUsers']);
@@ -60,6 +62,7 @@ Route::middleware(['auth:sanctum', 'superadmin'])->group(function () {
     Route::get('/students/school/{schoolId}', [StudentController::class, 'studentsBySchool']);
     Route::get('/student/{studentId}', [StudentController::class, 'viewStudent']);
     Route::get('/sorted-students', [StudentController::class, 'sortedStudents']);
+    
 });
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -75,6 +78,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/lga-schools', [SchoolController::class, 'lgaSchools']);
     Route::get('/school/{schoolId}/broadsheet', [SchoolController::class, 'generateBroadSheet']);
+    Route::get('/school/{schoolId}', [SchoolController::class, 'viewSchool']);
+
+    
+    Route::get('/status', [AuthController::class, 'checkStatus']);
+
 
 
 

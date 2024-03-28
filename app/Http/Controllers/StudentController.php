@@ -52,7 +52,7 @@ class StudentController extends Controller
             return response()->json([
                 'message' => 'Error retrieving students',
                 'error' => $e->getMessage()
-            ]);
+            ], 500);
         }
 
     }
@@ -99,6 +99,7 @@ class StudentController extends Controller
                 'success' => true,
                 'data' => $result,
             ]);
+            
         } catch (\Exception $e) {
             \Log::error($e);
             return response()->json([
@@ -255,7 +256,9 @@ class StudentController extends Controller
             $registrationActive = Setting::where('key', 'student_registration_active')->first()->value === 'true';
 
             if (!$registrationActive) {
-                return response()->json(['message' => 'Student registration is currently disabled'], 403);
+                return response()->json([
+                    'message' => 'Student registration is currently disabled'
+                ], 403);
             }
 
             DB::beginTransaction();
@@ -284,7 +287,9 @@ class StudentController extends Controller
                 'lga' => 'required|string',
                 'passport' => 'nullable|string',
                 'exam_type_id' => 'required|exists:exam_types,id',
-                'ca_scores' => 'required|array'
+                'ca_scores' => 'required|array',
+                'placed_school_id' => 'nullable',
+                'placed_school_lga' => 'nullable|string'
             ]);
 
             $existingStudent = Student::where('firstname', $request->firstname)
@@ -313,9 +318,11 @@ class StudentController extends Controller
                 'lga' => $request->lga,
                 'passport' => $request->passport,
                 'exam_type_id' => $request->exam_type_id,
+                'placed_school_id' => $request->placed_school_id,
+                'placed_school_lga' => $request->placed_school_lga,
             ]);
 
-            $student_code = $school->school_code . '/' . $student->id;
+            $student_code = $school->school_code . $student->id;
             $student->update(['student_code' => $student_code]);
 
             $this->generatePinForStudent($student->id, $student_code);
@@ -348,7 +355,7 @@ class StudentController extends Controller
                 'message' => 'Student registered successfully',
                 'student' => $student,
                 'scores' => $createdScores
-            ]);
+            ], 201);
 
         } catch (ValidationException $e) {
             DB::rollBack();

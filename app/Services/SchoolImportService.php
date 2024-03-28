@@ -15,7 +15,7 @@ class SchoolImportService
         try {
             DB::beginTransaction();
 
-            $filePath = storage_path("app/excel/ss2_private.xlsx");
+            $filePath = storage_path("app/excel/ss2_govt.xlsx");
             $reader = IOFactory::createReaderForFile($filePath);
             $spreadsheet = $reader->load($filePath);
             $worksheet = $spreadsheet->getActiveSheet();
@@ -50,7 +50,7 @@ class SchoolImportService
                 if ($existingSchool) {
                     $existingExamType = DB::table('school_exam_type')
                                            ->where('school_id', $existingSchool->id)
-                                           ->where('exam_type_id', 3)
+                                           ->where('exam_type_id',3)
                                            ->first();
                 
                     if (!$existingExamType) {
