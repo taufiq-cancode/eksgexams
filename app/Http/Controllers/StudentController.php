@@ -403,6 +403,7 @@ class StudentController extends Controller
             'school_id' => $student->school_id, 
             'school_code' => $student->school->school_code,
             'school_name' => $student->school->school_name,
+            'school_lga' => $student->school->localGovernment->lg_name,
             'scores' => $student->scores->map(function ($score) use ($examTypeId) {
                 $isCompulsory = false;
                 if ($examTypeId) {
@@ -425,7 +426,6 @@ class StudentController extends Controller
     
         return response()->json($transformedStudent);
     }
-    
     
     public function updateStudent(Request $request, $studentId)
     {

@@ -21,4 +21,9 @@ class Score extends Model
     {
         return $this->belongsTo(Subject::class, 'subject_id');
     }
+
+    public function student()
+    {
+        return $this->belongsTo(Student::class, 'student_id');
+    }
 }

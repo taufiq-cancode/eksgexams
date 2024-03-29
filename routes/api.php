@@ -56,11 +56,15 @@ Route::middleware(['auth:sanctum', 'superadmin'])->group(function () {
     Route::post('/exam-type/add-subject', [SubjectController::class, 'addSubjectToExamType']);
     Route::get('/subjects', [SubjectController::class, 'allSubjects']);
     Route::get('/sorted-subjects', [SubjectController::class, 'sortedSubjects']);
+    Route::get('/subjects/analysis/{subjectId}', [SubjectController::class, 'getAnalysis']);
 
     // STUDENT ROUTES
     Route::get('/students', [StudentController::class, 'allStudents']);
     Route::get('/students/school/{schoolId}', [StudentController::class, 'studentsBySchool']);
+    Route::post('/admin/students', [AdminController::class, 'registerStudent']);
     Route::get('/student/{studentId}', [StudentController::class, 'viewStudent']);
+    Route::put('/student/{studentId}', [StudentController::class, 'updateStudent']);
+    Route::delete('/student/{studentId}', [StudentController::class, 'deleteStudent']);
     Route::get('/sorted-students', [StudentController::class, 'sortedStudents']);
     
 });
