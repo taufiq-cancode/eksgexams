@@ -40,8 +40,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::middleware(['auth:sanctum', 'superadmin'])->group(function () {
     Route::post('/toggle-reg', [AdminController::class, 'toggleStudentReg']);
     Route::get('/reg-status', [AdminController::class, 'checkStatus']);
-
-
     Route::put('/user/{userId}', [UserController::class, 'updateUser']);
     Route::get('/users', [UserController::class, 'allUsers']);
     
@@ -56,7 +54,8 @@ Route::middleware(['auth:sanctum', 'superadmin'])->group(function () {
     Route::post('/exam-type/add-subject', [SubjectController::class, 'addSubjectToExamType']);
     Route::get('/subjects', [SubjectController::class, 'allSubjects']);
     Route::get('/sorted-subjects', [SubjectController::class, 'sortedSubjects']);
-    Route::get('/subjects/analysis/{subjectId}', [SubjectController::class, 'getAnalysis']);
+    Route::get('/subjects/examtype-analysis/{examtypeId}', [SubjectController::class, 'getAnalysisByExamtype']);
+    Route::get('/subjects/lga-analysis/{lgaId}', [SubjectController::class, 'getAnalysisByLGA']);
 
     // STUDENT ROUTES
     Route::get('/students', [StudentController::class, 'allStudents']);
@@ -84,11 +83,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/school/{schoolId}/broadsheet', [SchoolController::class, 'generateBroadSheet']);
     Route::get('/school/{schoolId}', [SchoolController::class, 'viewSchool']);
 
+    Route::get('/subjects/school-analysis/{schoolId}', [SubjectController::class, 'getAnalysisBySchool']);
     
     Route::get('/status', [AuthController::class, 'checkStatus']);
-
-
-
-
-
 });

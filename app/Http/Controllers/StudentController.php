@@ -497,9 +497,13 @@ class StudentController extends Controller
 
             $student = Student::findOrFail($studentId);
 
+            $school = $student->school();
+
             Score::where('student_id', $studentId)->delete();
 
             $student->delete();
+
+            $school->increment('student_limit');
 
             DB::commit();
 
