@@ -20,4 +20,9 @@ class Subject extends Model
                     ->withPivot('is_compulsory');
     }
 
+    public function scores()
+    {
+        return $this->hasMany(Score::class);
+    }
+
 }

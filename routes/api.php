@@ -56,6 +56,8 @@ Route::middleware(['auth:sanctum', 'superadmin'])->group(function () {
     Route::get('/sorted-subjects', [SubjectController::class, 'sortedSubjects']);
     Route::get('/subjects/examtype-analysis/{examtypeId}', [SubjectController::class, 'getAnalysisByExamtype']);
     Route::get('/subjects/lga-analysis/{lgaId}', [SubjectController::class, 'getAnalysisByLGA']);
+    Route::get('/subjects/total-lga-analysis/{examtypeId}', [SubjectController::class, 'getAnalysisByLGAs']);
+
 
     // STUDENT ROUTES
     Route::get('/students', [StudentController::class, 'allStudents']);

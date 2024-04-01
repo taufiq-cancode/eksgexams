@@ -186,4 +186,37 @@ class SubjectController extends Controller
         ]);
     }
 
+    public function getAnalysisByLGAs($examTypeId) 
+    {
+        $lgas = LocalGovernment::all();
+        $response = [];
+
+        foreach ($lgas as $lga) {
+            $subjectsData = Subject::whereHas('examTypes', function ($query) use ($examTypeId) {
+                $query->where('exam_type_id', $examTypeId);
+            })->get()->map(function ($subject) use ($lga, $examTypeId) {
+                $studentCount = $subject->scores()->whereHas('student', function ($query) use ($lga, $examTypeId) {
+                    $query->where('exam_type_id', $examTypeId)
+                          ->whereHas('school', function ($schoolQuery) use ($lga) {
+                              $schoolQuery->where('lg_id', $lga->id);
+                          });
+                })->count();
+
+                return [
+                    'id' => $subject->id,
+                    'name' => $subject->name,
+                    'student_count' => $studentCount
+                ];
+            });
+
+            $response[] = [
+                'id' => $lga->id,
+                'lg_name' => $lga->lg_name,
+                'subjects' => $subjectsData
+            ];
+        }
+
+        return response()->json($response);
+    }
+
 }
