@@ -9,6 +9,7 @@ use App\Models\Score;
 use App\Models\Setting;
 use App\Models\Student;
 use App\Models\Subject;
+use App\Services\StudentCodeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -308,7 +309,7 @@ class StudentController extends Controller
 
             $student = Student::create([
                 'school_id' => $school->id,
-                'student_code' => "temp",
+                'student_code' => null,
                 'firstname' => $request->firstname,
                 'surname' => $request->surname,
                 'othername' => $request->othername,
@@ -322,10 +323,8 @@ class StudentController extends Controller
                 'placed_school_lga' => $request->placed_school_lga,
             ]);
 
-            $student_code = $school->school_code . $student->id;
-            $student->update(['student_code' => $student_code]);
-
-            $this->generatePinForStudent($student->id, $student_code);
+            $surname = $request->surname;
+            $this->generatePinForStudent($student->id, $surname);
 
             $createdScores = [];
             foreach ($request->ca_scores as $score) {
@@ -453,15 +452,13 @@ class StudentController extends Controller
 
             if ($request->has('ca_scores')) {
                 foreach ($request->ca_scores as $scoreData) {
-                    $score = Score::where('student_id', $studentId)
-                                ->where('subject_id', $scoreData['subject_id'])
-                                ->first();
-                    
+                    $score = Score::find($scoreData['id']);
+    
                     if ($score) {
-                        $score->fill([
-                            'ca1_score' => $scoreData['ca1_score'] ?? null,
-                            'ca2_score' => $scoreData['ca2_score'] ?? null,
-                        ])->save();
+                        $score->subject_id = $scoreData['subject_id'];
+                        $score->ca1_score = $scoreData['ca1_score'] ?? null;
+                        $score->ca2_score = $scoreData['ca2_score'] ?? null;
+                        $score->save();
                     }
                 }
             }
@@ -520,7 +517,7 @@ class StudentController extends Controller
         }
     }
     
-    private function generatePinForStudent($studentId, $studentCode)
+    private function generatePinForStudent($studentId, $surname)
     {
         $pin = Str::random(6);
         while (DB::table('student_pins')->where('pin', $pin)->exists()) {
@@ -528,8 +525,18 @@ class StudentController extends Controller
         }
         DB::table('student_pins')->insert([
             'student_id' => $studentId,
-            'student_code' => $studentCode,
+            'surname' => $surname,
             'pin' => $pin
         ]);
+    }
+
+    public function updateStudentCodes(StudentCodeService $studentCodeService)
+    {
+        try {
+            $studentCodeService->updateStudentCodes();
+            return response()->json(['message' => 'Exam Numbers generated successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }

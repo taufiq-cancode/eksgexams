@@ -91,7 +91,7 @@ class AdminController extends Controller
             $student = Student::create([
                 'admin_id' => $admin->id,
                 'school_id' => $request->school_id,
-                'student_code' => "temp",
+                'student_code' => null,
                 'firstname' => $request->firstname,
                 'surname' => $request->surname,
                 'othername' => $request->othername,
@@ -105,10 +105,9 @@ class AdminController extends Controller
                 'placed_school_lga' => $request->placed_school_lga,
             ]);
 
-            $student_code = $school->school_code . $student->id;
-            $student->update(['student_code' => $student_code]);
+            $surname = $request->surname;
 
-            $this->generatePinForStudent($student->id, $student_code);
+            $this->generatePinForStudent($student->id, $surname);
 
             $createdScores = [];
             foreach ($request->ca_scores as $score) {
@@ -156,7 +155,7 @@ class AdminController extends Controller
         }
     }
 
-    private function generatePinForStudent($studentId, $studentCode)
+    private function generatePinForStudent($studentId, $surname)
     {
         $pin = Str::random(6);
         while (DB::table('student_pins')->where('pin', $pin)->exists()) {
@@ -164,7 +163,7 @@ class AdminController extends Controller
         }
         DB::table('student_pins')->insert([
             'student_id' => $studentId,
-            'student_code' => $studentCode,
+            'surname' => $surname,
             'pin' => $pin
         ]);
     }

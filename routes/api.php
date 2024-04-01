@@ -67,6 +67,10 @@ Route::middleware(['auth:sanctum', 'superadmin'])->group(function () {
     Route::put('/student/{studentId}', [StudentController::class, 'updateStudent']);
     Route::delete('/student/{studentId}', [StudentController::class, 'deleteStudent']);
     Route::get('/sorted-students', [StudentController::class, 'sortedStudents']);
+
+    // GENERATE EXAM NUMBER
+    Route::post('/generate-exam-number', [StudentController::class, 'updateStudentCodes']);
+
     
 });
 

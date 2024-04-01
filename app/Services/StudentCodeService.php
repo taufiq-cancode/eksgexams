@@ -7,32 +7,36 @@ use App\Models\Student;
 
 class StudentCodeService
 {
-    public function generateStudentCodes()
+    public function updateStudentCodes()
     {
         $schools = School::all();
+        $examTypeSuffixes = [
+            1 => 'P',
+            2 => 'J',
+            3 => 'S',
+        ];
 
         foreach ($schools as $school) {
-            $students = Student::where('school_id', $school->id)->orderBy('surname')->get();
-            $count = 0;
+            // Initialize a counter for each exam type within the school
+            $counters = [
+                1 => 1,
+                2 => 1,
+                3 => 1,
+            ];
+
+            $students = Student::where('school_id', $school->id)
+                            ->orderBy('surname')
+                            ->get();
 
             foreach ($students as $student) {
-                $count++; 
+                $examTypeSuffix = $examTypeSuffixes[$student->exam_type_id];
+                $orderedNumber = str_pad($counters[$student->exam_type_id], 4, '0', STR_PAD_LEFT);
+                $newCode = $school->school_code . $orderedNumber . $examTypeSuffix;
 
-                $studentCodeSuffix = $this->getStudentCodeSuffix($student->exam_type_id);
-                $studentCode = $school->school_code . '/' . str_pad($count, 4, '0', STR_PAD_LEFT) . $studentCodeSuffix;
-                $student->update(['student_code' => $studentCode]);
+                $student->update(['student_code' => $newCode]);
+                $counters[$student->exam_type_id]++;
             }
         }
     }
 
-    private function getStudentCodeSuffix($examTypeId)
-    {
-        $suffixes = [
-            1 => 'P',
-            2 => 'J', 
-            3 => 'S', 
-        ];
-
-        return $suffixes[$examTypeId] ?? '';
-    }
 }

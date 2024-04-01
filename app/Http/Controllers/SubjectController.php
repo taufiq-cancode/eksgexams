@@ -108,47 +108,56 @@ class SubjectController extends Controller
 
     public function getAnalysisByLGA($lgaId) 
     {
-        $lga = LocalGovernment::with(['schools.examTypes.subjects'])->find($lgaId);
+        $lga = LocalGovernment::find($lgaId);
 
         if (!$lga) {
             return response()->json(['message' => 'Local Government Area not found'], 404);
         }
 
-        $schoolsData = $lga->schools->map(function ($school) {
-            $examTypesData = $school->examTypes->map(function ($examType) use ($school) {
-                $subjectsData = $examType->subjects->map(function ($subject) use ($school) {
-                    $studentCount = $school->students()
-                        ->whereHas('scores', function ($query) use ($subject) {
-                            $query->where('subject_id', $subject->id);
-                        })->count();
-
-                    return [
-                        'id' => $subject->id,
-                        'name' => $subject->name,
-                        'student_count' => $studentCount,
-                    ];
-                });
-
-                return [
-                    'id' => $examType->id,
-                    'name' => $examType->name,
-                    'subjects' => $subjectsData
-                ];
-            });
-
-            return [
-                'id' => $school->id,
-                'school_name' => $school->school_name,
-                'examTypes' => $examTypesData
-            ];
-        });
-
-        return response()->json([
+        $response = [
             'id' => $lga->id,
             'lg_name' => $lga->lg_name,
-            'schools' => $schoolsData
-        ]);
+        ];
+
+        $examTypes = ExamType::with('subjects')->get();
+        foreach ($examTypes as $examType) {
+            $schoolsData = [];
+
+            foreach ($lga->schools as $school) {
+                if ($school->examTypes->contains($examType->id)) {
+                    $subjectsData = [];
+
+                    foreach ($examType->subjects as $subject) {
+                        $studentCount = $school->students()
+                            ->whereHas('scores', function ($query) use ($subject) {
+                                $query->where('subject_id', $subject->id);
+                            })->count();
+
+                        $subjectsData[] = [
+                            'id' => $subject->id,
+                            'name' => $subject->name,
+                            'student_count' => $studentCount,
+                        ];
+                    }
+
+                    $schoolsData[] = [
+                        'id' => $school->id,
+                        'school_name' => $school->school_name,
+                        'subjects' => $subjectsData
+                    ];
+                }
+            }
+
+            if (!empty($schoolsData)) {
+                $response[$examType->name] = $schoolsData;
+            }
+        }
+
+        return response()->json($response);
     }
+
+
+
 
     public function getAnalysisBySchool($schoolId) 
     {
