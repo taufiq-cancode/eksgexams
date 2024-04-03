@@ -15,7 +15,7 @@ class SchoolImportService
         try {
             DB::beginTransaction();
 
-            $filePath = storage_path("app/excel/ss2_govt.xlsx");
+            $filePath = storage_path("app/excel/ss2_private.xlsx");
             $reader = IOFactory::createReaderForFile($filePath);
             $spreadsheet = $reader->load($filePath);
             $worksheet = $spreadsheet->getActiveSheet();
