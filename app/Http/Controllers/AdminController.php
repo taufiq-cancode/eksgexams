@@ -192,4 +192,57 @@ class AdminController extends Controller
             ], 500);
         }
     }
+
+    public function getTotalStudentLimitForAllLGAs()
+    {
+        $localGovernments = DB::table('local_governments')->get();
+
+        $results = [];
+
+        foreach ($localGovernments as $localGovernment) {
+            $totalStudentLimit = $this->calculateTotalStudentLimit($localGovernment->id);
+
+            $studentsCount = $this->getStudentsCount($localGovernment->id);
+
+            $results[] = [
+                'lg_name' => $localGovernment->lg_name,
+                'lg_quota' => $totalStudentLimit,
+                'students_registered' => $studentsCount
+            ];
+        }
+
+        return response()->json(['results' => $results], 200);
+    }
+
+    private function calculateTotalStudentLimit($lg_id)
+    {
+        $schools = DB::table('schools')->where('lg_id', $lg_id)->get();
+
+        $totalStudentLimit = 0;
+
+        foreach ($schools as $school) {
+            $currentStudentLimit = $school->student_limit;
+
+            $enrolledStudentsCount = DB::table('students')->where('school_id', $school->id)->count();
+
+            $totalStudentLimit += ($currentStudentLimit + $enrolledStudentsCount);
+        }
+
+        return $totalStudentLimit;
+    }
+
+    private function getStudentsCount($lg_id)
+    {
+        $schools = DB::table('schools')->where('lg_id', $lg_id)->get();
+
+        $studentsCount = 0;
+
+        foreach ($schools as $school) {
+            $studentsCount += DB::table('students')->where('school_id', $school->id)->count();
+        }
+
+        return $studentsCount;
+    }
+
+
 }

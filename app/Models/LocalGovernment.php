@@ -13,4 +13,5 @@ class LocalGovernment extends Model
     {
         return $this->hasMany(School::class, 'lg_id');
     }
+
 }

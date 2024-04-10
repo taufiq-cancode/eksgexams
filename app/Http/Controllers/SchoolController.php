@@ -161,16 +161,6 @@ class SchoolController extends Controller
         }
     }
 
-    // private function generateUniqueSchoolCode()
-    // {
-    //     do {
-    //         $code = rand(10000000, 99999999); 
-    //     } while (School::where('school_code', $code)->exists());
-
-    //     return $code;
-    // }
-
-
     public function viewSchool($schoolId)
     {
         try {

@@ -376,13 +376,13 @@ class StudentController extends Controller
     {
         $student = Student::with('scores.subject.examTypes', 'pin', 'examType', 'school')
                         ->find($studentId);
-
+    
         if (!$student) {
             return response()->json([
                 'message' => 'Student not found'
             ], 404);
         }
-
+    
         $examTypeId = $student->examType->id ?? null;
     
         $transformedStudent = [
@@ -403,28 +403,57 @@ class StudentController extends Controller
             'school_code' => $student->school->school_code,
             'school_name' => $student->school->school_name,
             'school_lga' => $student->school->localGovernment->lg_name,
-            'scores' => $student->scores->map(function ($score) use ($examTypeId) {
-                $isCompulsory = false;
-                if ($examTypeId) {
-                    $isCompulsory = $score->subject->examTypes->contains(function ($examType) use ($examTypeId) {
-                        return $examType->id == $examTypeId && $examType->pivot->is_compulsory;
-                    });
-                }
-    
-                return [
-                    'id' => $score->id,
-                    'student_id' => $score->student_id,
-                    'subject_id' => $score->subject_id,
-                    'subject_name' => $score->subject->name, 
-                    'is_compulsory' => $isCompulsory,
-                    'ca1_score' => $score->ca1_score,
-                    'ca2_score' => $score->ca2_score,
-                ];
-            }),
+            'scores' => [],
         ];
+    
+        foreach ($student->scores as $score) {
+            $isCompulsory = false;
+            if ($examTypeId) {
+                $isCompulsory = $score->subject->examTypes->contains(function ($examType) use ($examTypeId) {
+                    return $examType->id == $examTypeId && $examType->pivot->is_compulsory;
+                });
+            }
+    
+            $transformedStudent['scores'][] = [
+                'id' => $score->id,
+                'student_id' => $score->student_id,
+                'subject_id' => $score->subject_id,
+                'subject_name' => $score->subject->name, 
+                'is_compulsory' => $isCompulsory,
+                'ca1_score' => $score->ca1_score,
+                'ca2_score' => $score->ca2_score,
+            ];
+        }
+    
+        $fakeSubjects = [
+            ['subject_id' => 44, 'subject_name' => 'Business Studies'],
+            ['subject_id' => 45, 'subject_name' => 'Basic Science & Technology'],
+            ['subject_id' => 46, 'subject_name' => 'Pre-vocational Studies'],
+            ['subject_id' => 47, 'subject_name' => 'National Value'],
+            ['subject_id' => 48, 'subject_name' => 'Yoruba'],
+            ['subject_id' => 49, 'subject_name' => 'CCA'],
+            ['subject_id' => 50, 'subject_name' => 'CRS'],
+            ['subject_id' => 51, 'subject_name' => 'IRS'],
+            ['subject_id' => 52, 'subject_name' => 'French'],
+            ['subject_id' => 53, 'subject_name' => 'Arabic'],
+            ['subject_id' => 54, 'subject_name' => 'History']
+        ];
+    
+        foreach ($fakeSubjects as $fakeSubject) {
+            $transformedStudent['scores'][] = [
+                'id' => null,
+                'student_id' => $student->id,
+                'subject_id' => $fakeSubject['subject_id'],
+                'subject_name' => $fakeSubject['subject_name'],
+                'is_compulsory' => true,
+                'ca1_score' => 0,
+                'ca2_score' => 0,
+            ];
+        }
     
         return response()->json($transformedStudent);
     }
+    
     
     public function updateStudent(Request $request, $studentId)
     {
