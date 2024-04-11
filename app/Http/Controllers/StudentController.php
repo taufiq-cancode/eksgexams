@@ -449,7 +449,7 @@ class StudentController extends Controller
     {
         try {
             DB::beginTransaction();
-
+    
             $request->validate([
                 'firstname' => 'sometimes|string',
                 'surname' => 'sometimes|string',
@@ -459,44 +459,51 @@ class StudentController extends Controller
                 'lga' => 'sometimes|string',
                 'passport' => 'sometimes|string',
                 'ca_scores' => 'sometimes|array',
-                'ca_scores.*.id' => 'required_with:ca_scores|exists:scores,id',
+                'ca_scores.*.id' => 'sometimes|exists:scores,id',
                 'ca_scores.*.subject_id' => 'required_with:ca_scores|exists:subjects,id',
                 'ca_scores.*.ca1_score' => 'nullable|numeric',
                 'ca_scores.*.ca2_score' => 'nullable|numeric',
             ]);
-
+    
             $student = Student::findOrFail($studentId);
             $student->fill($request->only(['firstname', 'surname', 'othername', 'date_of_birth', 'state_of_origin', 'lga', 'passport', 'exam_type_id']));
             $student->save();
-
+    
             if ($request->has('ca_scores')) {
                 foreach ($request->ca_scores as $scoreData) {
-                    $score = Score::find($scoreData['id']);
-    
-                    if ($score) {
+                    $existingScore = Score::where('student_id', $studentId)
+                                           ->where('subject_id', $scoreData['subject_id'])
+                                           ->first();
+            
+                    if ($existingScore) {
+                        $score = $existingScore;
+                    } else {
+                        $score = new Score();
+                        $score->student_id = $studentId;
                         $score->subject_id = $scoreData['subject_id'];
-                        $score->ca1_score = $scoreData['ca1_score'] ?? null;
-                        $score->ca2_score = $scoreData['ca2_score'] ?? null;
-                        $score->save();
                     }
+            
+                    $score->ca1_score = $scoreData['ca1_score'];
+                    $score->ca2_score = $scoreData['ca2_score'];
+                    $score->save();
                 }
             }
-
+    
             DB::commit();
-
+    
             return response()->json([
                 'message' => 'Student and scores updated successfully',
                 'student' => $student,
                 'scores' => $student->scores
             ]);
-
+    
         } catch (ValidationException $e) {
             DB::rollBack();
             return response()->json([
                 'message' => 'Validation error',
                 'error' => $e->getMessage(),
             ], 422);
-
+    
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -505,6 +512,7 @@ class StudentController extends Controller
             ], 500);
         }
     }
+    
 
     public function deleteStudent($studentId)
     {
