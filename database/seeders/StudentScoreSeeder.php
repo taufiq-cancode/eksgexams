@@ -14,10 +14,8 @@ class StudentScoreSeeder extends Seeder
     public function run()
     {
         $scoreData = [
-            ['student_id' => 37, 'subject_id' => 1, 'ca1_score' => 15, 'ca2_score' => 17],
-            ['student_id' => 104, 'subject_id' => 2, 'ca1_score' => 18, 'ca2_score' => 16],
-            ['student_id' => 82, 'subject_id' => 20, 'ca1_score' => 14, 'ca2_score' => 19],
-            ['student_id' => 2, 'subject_id' => 48, 'ca1_score' => 16, 'ca2_score' => 18],
+            ['student_id' => 284, 'subject_id' => 49, 'ca1_score' => 13, 'ca2_score' => 15],
+            ['student_id' => 280, 'subject_id' => 49, 'ca1_score' => 16, 'ca2_score' => 11],
         ];
         
         foreach ($scoreData as $data) {
