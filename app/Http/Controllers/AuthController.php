@@ -111,148 +111,63 @@ class AuthController extends Controller
            
     }
 
-//     public function studentLogin(Request $request)
-// {
-//     try {
-//         $request->validate([
-//             'surname' => 'required',
-//             'pin' => 'required',
-//         ]);
+    public function studentLogin(Request $request)
+    {
+        try {
+            $request->validate([
+                'pin' => 'required',
+            ]);
 
-//         // Find the student by pin
-//         $student = Student::with('pin', 'school')->whereHas('pin', function ($query) use ($request) {
-//             $query->where('pin', $request->pin);
-//         })->first();
+            $student = Student::with('school')->whereHas('pin', function ($query) use ($request) {
+                $query->where('pin', $request->pin);
+            })->first();
 
-//         // Check if student exists and surname matches
-//         if (!$student || strtolower($student->surname) !== strtolower($request->surname)) { 
-//             return response()->json([
-//                 'message' => 'Incorrect login credentials'
-//             ], 401);
-//         }
+            if (!$student) { 
+                return response()->json([
+                    'message' => 'Incorrect login credentials'
+                ], 401);
+            }
 
-//         // Transform student data
-//         $transformedStudent = [
-//             'id' => $student->id,
-//             'student_code' => $student->student_code,
-//             'firstname' => $student->firstname,
-//             'surname' => $student->surname,
-//             'othername' => $student->othername,
-//             'gender' => $student->gender,
-//             'passport' => $student->passport,
-//             'date_of_birth' => $student->date_of_birth,
-//             'state_of_origin' => $student->state_of_origin,
-//             'local_government' => $student->lga,
-//             'ca_scores' => $student->scores->map(function ($score) {
-//                 return [
-//                     'subject_id' => $score->subject_id,
-//                     'subject_name' => $score->subject->name,
-//                     'ca1_score' => $score->ca1_score,
-//                     'ca2_score' => $score->ca2_score,
-//                 ];
-//             }),
-//             'school' => [
-//                 'school_id' => $student->school->id,
-//                 'school_name' => $student->school->school_name,
-//                 'school_code' => $student->school->school_code,
-//                 'school_lg' => $student->school->localGovernment->lg_name,
-//             ]
-//         ];
+            $transformedStudent = [
+                'id' => $student->id,
+                'student_code' => $student->student_code,
+                'firstname' => $student->firstname,
+                'surname' => $student->surname,
+                'othername' => $student->othername,
+                'gender' => $student->gender,
+                'passport' => $student->passport,
+                'date_of_birth' => $student->date_of_birth,
+                'state_of_origin' => $student->state_of_origin,
+                'local_government' => $student->lga,
+                'ca_scores' => $student->scores->map(function ($score) {
+                    return [
+                        'subject_id' => $score->subject_id,
+                        'subject_name' => $score->subject->name,
+                        'ca1_score' => $score->ca1_score,
+                        'ca2_score' => $score->ca2_score,
+                    ];
+                }),
+                'school' => [
+                    'school_id' => $student->school->id,
+                    'school_name' => $student->school->school_name,
+                    'school_code' => $student->school->school_code,
+                    'school_lg' => $student->school->localGovernment->lg_name,
+                ]
+            ];
 
-//         return response()->json([
-//             'message' => 'Logged in successfully',
-//             'student' => $transformedStudent
-//         ]);
-
-//     } catch(\Exception $e) {
-//         return response()->json([
-//             'message' => 'Error logging in',
-//             'error' => $e->getMessage()
-//         ], 401);
-//     }
-// }
-
-
-public function studentLogin(Request $request)
-{
-    try {
-        $request->validate([
-            'pin' => 'required', // Only validate the pin
-        ]);
-
-        // Find the student by pin
-        $student = Student::with('school')->whereHas('pin', function ($query) use ($request) {
-            $query->where('pin', $request->pin);
-        })->first();
-
-        // Check if student exists
-        if (!$student) { 
             return response()->json([
-                'message' => 'Incorrect login credentials'
+                'message' => 'Logged in successfully',
+                'student' => $transformedStudent
+            ]);
+
+        } catch(\Exception $e) {
+            return response()->json([
+                'message' => 'Error logging in',
+                'error' => $e->getMessage()
             ], 401);
         }
-
-        // Transform student data
-                $transformedStudent = [
-            'id' => $student->id,
-            'student_code' => $student->student_code,
-            'firstname' => $student->firstname,
-            'surname' => $student->surname,
-            'othername' => $student->othername,
-            'gender' => $student->gender,
-            'passport' => $student->passport,
-            'date_of_birth' => $student->date_of_birth,
-            'state_of_origin' => $student->state_of_origin,
-            'local_government' => $student->lga,
-            'ca_scores' => $student->scores->map(function ($score) {
-                return [
-                    'subject_id' => $score->subject_id,
-                    'subject_name' => $score->subject->name,
-                    'ca1_score' => $score->ca1_score,
-                    'ca2_score' => $score->ca2_score,
-                ];
-            }),
-            'school' => [
-                'school_id' => $student->school->id,
-                'school_name' => $student->school->school_name,
-                'school_code' => $student->school->school_code,
-                'school_lg' => $student->school->localGovernment->lg_name,
-            ]
-        ];
-
-
-        return response()->json([
-            'message' => 'Logged in successfully',
-            'student' => $transformedStudent
-        ]);
-
-    } catch(\Exception $e) {
-        return response()->json([
-            'message' => 'Error logging in',
-            'error' => $e->getMessage()
-        ], 401);
     }
-}
 
-    // public function checkStatus(Request $request)
-    // {
-    //     $school = auth()->user();
-        
-    //     if (!$school) {
-    //         return response()->json(['message' => 'Unauthorized'], 401);
-    //     }
-
-    //     $isActive = (bool) $school->is_active;
-    //     $registrationSetting = Setting::where('key', 'student_registration_active')->first();
-
-    //     $isRegistrationActive = $registrationSetting && $registrationSetting->value === 'true';
-
-    //     return response()->json([
-    //         'is_school_active' => $isActive,
-    //         'is_registration_active' => $isRegistrationActive
-    //     ]);
-    // }
-    
     public function checkStatus(Request $request)
     {
         $school = auth()->user();

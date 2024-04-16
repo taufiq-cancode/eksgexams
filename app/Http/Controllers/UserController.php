@@ -39,10 +39,11 @@ class UserController extends Controller
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
+                'role' => 'super_admin'
             ]);
     
             return response()->json([
-                'message' => 'User created successfully',
+                'message' => 'Admin created successfully',
                 'user' => $user,
             ], 201);
 
