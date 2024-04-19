@@ -21,41 +21,16 @@ class StudentController extends Controller
     public function allStudents()
     {
         try {
-
-            $students = Student::with('scores', 'pin', 'examType', 'school')->get();
-            
-            $transformedStudents = $students->map(function ($student) {
-                return [
-                    'id' => $student->id,
-                    'student_code' =>$student->student_code,
-                    'firstname' => $student->firstname,
-                    'surname' => $student->surname,
-                    'othername' => $student->othername,
-                    'gender' => $student->gender,
-                    'date_of_birth' => $student->date_of_birth,
-                    'state_of_origin' => $student->state_of_origin,
-                    'local_government' => $student->lga,
-                    'passport' => $student->passport,
-                    'exam_type' => $student->examType->name ?? null,
-                    'pin' => $student->pin ? $student->pin->pin : null,
-                    'created_at' => $student->created_at,
-                    'school_id' => $student->school_id, 
-                    'school_code' => $student->school->school_code,
-                    'school_name' => $student->school->school_name,
-                    'scores' => $student->scores
-                ];
-            });
-        
-        
-            return response()->json($transformedStudents);
-
+            $studentsCount = Student::count();
+            return response()->json([
+                'number_of_students' => $studentsCount
+            ]);
         } catch(\Exception $e) {
             return response()->json([
                 'message' => 'Error retrieving students',
                 'error' => $e->getMessage()
             ], 500);
         }
-
     }
 
     public function sortedStudents()
