@@ -193,26 +193,47 @@ class AdminController extends Controller
         }
     }
 
-    public function getTotalStudentLimitForAllLGAs()
+    public function quotaAnalysis()
     {
-        $localGovernments = DB::table('local_governments')->get();
-
-        $results = [];
-
-        foreach ($localGovernments as $localGovernment) {
-            $totalStudentLimit = $this->calculateTotalStudentLimit($localGovernment->id);
-
-            $studentsCount = $this->getStudentsCount($localGovernment->id);
-
-            $results[] = [
-                'lg_name' => $localGovernment->lg_name,
-                'lg_quota' => $totalStudentLimit,
-                'students_registered' => $studentsCount
+        try {
+            $localGovernments = DB::table('local_governments')->get();
+    
+            $results = [];
+            $totalQuota = 0;
+            $totalStudentsRegistered = 0;
+    
+            foreach ($localGovernments as $localGovernment) {
+                $totalStudentLimit = $this->calculateTotalStudentLimit($localGovernment->id);
+                $studentsCount = $this->getStudentsCount($localGovernment->id);
+    
+                $totalQuota += $totalStudentLimit;
+                $totalStudentsRegistered += $studentsCount;
+    
+                $results[] = [
+                    'lg_name' => $localGovernment->lg_name,
+                    'lg_quota' => $totalStudentLimit,
+                    'students_registered' => $studentsCount
+                ];
+            }
+    
+            $totals = [
+                'total_quota_assigned' => $totalQuota,
+                'total_students_registered' => $totalStudentsRegistered
             ];
+    
+            return response()->json([
+                'results' => $results,
+                'totals' => $totals
+            ], 200);
+    
+        } catch(\Exception $e) {
+            return response()->json([
+                'message' => 'Error retrieving quota analysis',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json(['results' => $results], 200);
     }
+    
 
     private function calculateTotalStudentLimit($lg_id)
     {

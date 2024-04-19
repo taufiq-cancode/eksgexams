@@ -72,7 +72,7 @@ Route::middleware(['auth:sanctum', 'superadmin'])->group(function () {
     Route::post('/generate-exam-number', [StudentController::class, 'updateStudentCodes']);
 
     // LGA QUOTAS ANALYSIS
-    Route::get('/quota-analysis', [AdminController::class, 'getTotalStudentLimitForAllLGAs']);    
+    Route::get('/quota-analysis', [AdminController::class, 'quotaAnalysis']);    
 });
 
 Route::middleware('auth:sanctum')->group(function () {

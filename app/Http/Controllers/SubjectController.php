@@ -156,9 +156,6 @@ class SubjectController extends Controller
         return response()->json($response);
     }
 
-
-
-
     public function getAnalysisBySchool($schoolId) 
     {
         $school = School::with('examTypes.subjects')->find($schoolId);
