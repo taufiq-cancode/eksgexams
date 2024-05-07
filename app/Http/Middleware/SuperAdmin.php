@@ -15,10 +15,10 @@ class SuperAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->check() && auth()->user()->role === 'super_admin') {
+        if (auth()->check() && auth()->user()->role === 'super_admin' && auth()->user()->is_active == true) {
             return $next($request);
         }
 
-        return response()->json(['message' => 'Unauthorized'], 403);
+        return response()->json(['message' => 'Access denied'], 403);
     }
 }

@@ -39,7 +39,7 @@ class AuthController extends Controller
                 ], 403);
             }
 
-            if ($user->is_active === false){
+            if ($user->is_active == false){
                 return response()->json([
                     'message' => 'Access denied'
                 ], 403);
@@ -188,7 +188,4 @@ class AuthController extends Controller
     
         return response()->json($responseData);
     }
-
-
-  
 }
