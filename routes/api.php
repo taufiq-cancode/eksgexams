@@ -8,7 +8,7 @@ use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\AdminController;
-
+use App\Http\Controllers\AnalysisController;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,7 +58,6 @@ Route::middleware(['auth:sanctum', 'superadmin'])->group(function () {
     Route::get('/subjects/lga-analysis/{lgaId}', [SubjectController::class, 'getAnalysisByLGA']);
     Route::get('/subjects/total-lga-analysis/{examtypeId}', [SubjectController::class, 'getAnalysisByLGAs']);
 
-
     // STUDENT ROUTES
     Route::get('/students', [StudentController::class, 'allStudents']);
     Route::get('/students/school/{schoolId}', [StudentController::class, 'studentsBySchool']);
@@ -72,7 +71,8 @@ Route::middleware(['auth:sanctum', 'superadmin'])->group(function () {
     Route::post('/generate-exam-number', [StudentController::class, 'updateStudentCodes']);
 
     // LGA QUOTAS ANALYSIS
-    Route::get('/quota-analysis', [AdminController::class, 'quotaAnalysis']);    
+    Route::get('/analysis', [AnalysisController::class, 'analysis']);  
+    Route::get('/quota-analysis', [AnalysisController::class, 'quotaAnalysis']);    
 });
 
 Route::middleware('auth:sanctum')->group(function () {
