@@ -28,12 +28,32 @@ class AnalysisController extends Controller
         $maleStudentsCount = Student::where('gender', 'male')->count();
         $femaleStudentsCount = Student::where('gender', 'female')->count();
 
+        $privateMaleStudentsCount = Student::whereHas('school', function ($query) {
+            $query->where('owner', 'private');
+        })->where('gender', 'male')->count();
+
+        $privateFemaleStudentsCount = Student::whereHas('school', function ($query) {
+            $query->where('owner', 'private');
+        })->where('gender', 'female')->count();
+
+        $govtMaleStudentsCount = Student::whereHas('school', function ($query) {
+            $query->where('owner', 'government');
+        })->where('gender', 'male')->count();
+
+        $govtFemaleStudentsCount = Student::whereHas('school', function ($query) {
+            $query->where('owner', 'government');
+        })->where('gender', 'female')->count();
+
         return response()->json([
             'jss3_students_count' => $allStudentsCount,
             'private_school_students_count' => $privateStudentsCount,
             'government_school_students_count' => $govtStudentsCount,
             'male_students_count' => $maleStudentsCount,
             'female_students_count' => $femaleStudentsCount,
+            'private_male_students_count' => $privateMaleStudentsCount,
+            'private_female_students_count' => $privateFemaleStudentsCount,
+            'govt_male_students_count' => $govtMaleStudentsCount,
+            'govt_female_students_count' => $govtFemaleStudentsCount,
         ]);
     }
 
@@ -107,4 +127,5 @@ class AnalysisController extends Controller
 
         return $studentsCount;
     }
+
 }
